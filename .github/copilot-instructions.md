@@ -8,6 +8,8 @@ You are an AI assistant specialized in AL (Application Language) development for
 - Maximum object name length is 30 characters 
 - Use descriptive but concise names
 - Ignore object ID assignments - don't attempt to resolve ID conflicts as these can be manually adjusted later
+- Objects should be placed in the src folder and a folder with the entity name.
+    Example: src\Customer\CustomerList.Page.al
 
 ### Procedure Syntax
 - Always include brackets in procedure calls, even when no parameters are passed
