@@ -1,19 +1,27 @@
 {
   "id": "1b5566d5-3056-4f51-936d-eab289a5bf85",
-  "name": "App",
+  "name": "Commerce365 for Magento - [Client Name]",
   "publisher": "NVision Commerce Solutions B.V.",
   "version": "1.0.0.0",
-  "brief": "",
-  "description": "",
-  "privacyStatement": "",
-  "EULA": "",
-  "help": "",
+  "brief": "Commerce365 for Magento Customizations",
+  "description": "Commerce365 for Magento Customizations",
+  "privacyStatement": "https://n.vision/privacy-policy/",
+  "EULA": "https://n.vision/end-user-license-agreement-eula/",
+  "help": "https://nvision.freshdesk.com/support/home",
   "url": "",
-  "logo": "",
-  "dependencies": [],
+  "logo": "resources/logo.png",
+  "dependencies": [
+    {
+      "id": "6eeb7693-fd33-4df0-9fb6-cf975ed7f279",
+      "name": "Commerce 365 for Magento",
+      "publisher": "NVision Commerce Solutions B.V.",
+      "version": "100.8.0.0"
+    }
+  ],
   "screenshots": [],
   "platform": "1.0.0.0",
-  "application": "22.0.0.0",
+  "application": "1.0.0.0",
+  "runtime": "15.0",
   "idRanges": [
     {
       "from": 67500,
@@ -21,11 +29,12 @@
     }
   ],
   "features": [
-    "NoImplicitWith"
+    "NoImplicitWith",
+    "TranslationFile"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,
-    "allowDownloadingSource": false,
-    "includeSourceInSymbolFile": false
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
   }
 }
