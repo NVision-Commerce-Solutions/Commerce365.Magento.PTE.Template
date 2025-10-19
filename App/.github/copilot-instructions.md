@@ -271,7 +271,190 @@ You are an AI assistant specialized in AL (Application Language) development for
         end;
     }
     ```
-    
+
+### Order header attributes in Commerce 365 for Magento
+- Order attributes are key-value pairs associated with staging order headers and lines in Commerce 365 for Magento.
+- All staging order header attributes can be read using procedure GetStagingOrderAttributes(NC365StagingOrderHeader) in Codeunit "NC365 Sales Order API". The procedure returns a DDictionary of [Text, Text] containing the attributes. Where the key is the attribute code and the value is the attribute value.
+- A specific order header attribute can be read using procedure GetStagingOrderAttributeValue(NC365StagingOrderHeader, AttributeCode) in Codeunit "NC365 Sales Order API". The procedure returns a Text value containing the attribute value.
+- All staging order line attributes can be read using procedure GetStagingOrderLineAttributes(NC365StagingOrderLine) in Codeunit "NC365 Sales Order API". The procedure returns a DDictionary of [Text, Text] containing the attributes. Where the key is the attribute code and the value is the attribute value.
+- A specific order line attribute can be read using procedure GetStagingOrderLineAttributeValue(NC365StagingOrderLine, AttributeCode) in Codeunit "NC365 Sales Order API". The procedure returns a Text value containing the attribute value.
+- Example of processing staging order header attributes after sales document creation:
+    ```al
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"NC365 Staging Order Events", OnAfterCreateSalesDocument, '', false, false)]
+    local procedure NC365StagingOrderEvents_OnAfterCreateSalesDocument(var StagingOrderHeader: Record "NC365 Staging Order Header")
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        if not SalesHeader.Get(StagingOrderHeader."Created Doc. Type", StagingOrderHeader."Created Document No.") then
+            exit;
+
+        ProcessAttributes(StagingOrderHeader, SalesHeader);
+    end;
+
+    local procedure ProcessAttributes(StagingOrderHeader: Record "NC365 Staging Order Header"; var SalesHeader: Record "Sales Header")
+    var
+        SalesOrderAPI: Codeunit "NC365 Sales Order API";
+        OrderAttributes: Dictionary of [Text, Text];
+        AttributeCode, AttributeValue : Text;
+    begin
+        OrderAttributes := SalesOrderAPI.GetStagingOrderAttributes(StagingOrderHeader);
+        if OrderAttributes.Count() = 0 then
+            exit;
+
+        foreach AttributeCode in OrderAttributes.Keys() do
+            if OrderAttributes.Get(AttributeCode, AttributeValue) then
+                ProcessAttribute(SalesHeader, AttributeCode, AttributeValue);
+
+        SalesHeader.Modify(true);
+    end;
+
+    local procedure ProcessAttribute(var SalesHeader: Record "Sales Header"; AttributeCode: Text; AttributeValue: Text)
+    var
+        DateValue: Date;
+        DecimalValue: Decimal;
+    begin
+        case AttributeCode of
+            'FREE_DELIVERY':
+                if AttributeValue = '1' then
+                    SalesHeader.Validate("Shipment Method Code", 'VLG ORDER');
+
+            'PICKUP_TRUCK':
+                if AttributeValue = '1' then
+                    SalesHeader.Validate("Shipment Method Code", 'KOOIAAP');
+
+            'ORDER_COMMENT':
+                CreateCommentLine(SalesHeader, 0, CopyStr(AttributeValue, 1, 80));
+
+            'PICKUP_TRUCK_FEE':
+                begin
+                    if not Evaluate(DecimalValue, AttributeValue) then
+                        exit;
+
+                    if DecimalValue = 0 then
+                        exit;
+
+                    CreateHandlingCostSalesLine(SalesHeader, 'KOOIAAP', DecimalValue);
+                end;
+
+            'DELIVERY_DATE':
+                begin
+                    if AttributeValue.Contains(' ') then
+                        AttributeValue := CopyStr(AttributeValue.Split(' ').Get(1), 1, 10);
+
+                    if Evaluate(DateValue, AttributeValue) then
+                        SalesHeader.Validate("Requested Delivery Date", DateValue);
+                end;
+        end;
+    end;
+
+    local procedure CreateCommentLine(SalesHeader: Record "Sales Header"; DocumentLineNo: Integer; Comment: Text[80])
+    var
+        SalesCommentLine: Record "Sales Comment Line";
+        LineNo: Integer;
+    begin
+        SalesCommentLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesCommentLine.SetRange("No.", SalesHeader."No.");
+        SalesCommentLine.SetRange("Document Line No.", DocumentLineNo);
+        if SalesCommentLine.FindLast() then
+            LineNo := SalesCommentLine."Line No." + 10000
+        else
+            LineNo := 10000;
+
+        SalesCommentLine.Init();
+        SalesCommentLine.Validate("Document Type", SalesHeader."Document Type");
+        SalesCommentLine.Validate("No.", SalesHeader."No.");
+        SalesCommentLine.Validate("Document Line No.", DocumentLineNo);
+        SalesCommentLine.Validate("Line No.", LineNo);
+        SalesCommentLine.Validate(Date, WorkDate());
+        SalesCommentLine.Validate(Comment, Comment);
+        SalesCommentLine.Validate("ACAT Shipment Ref.", SalesCommentLine."ACAT Shipment Ref."::"Shipment Reference");
+        SalesCommentLine.Insert(true);
+    end;   
+    ```
+- Example of processing staging order line attributes after sales document line creation:
+    ```al
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"NC365 Staging Order Events", OnAfterCreateSalesLine, '', false, false)]
+    local procedure StagingOrderEvents_OnAfterCreateSalesLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var StagingOrderLine: Record "NC365 Staging Order Line")
+    begin
+        ProcessAttributes(StagingOrderLine, SalesHeader, SalesLine);
+    end;
+
+    local procedure ProcessAttributes(StagingOrderLine: Record "NC365 Staging Order Line"; var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
+    var
+        SalesOrderAPI: Codeunit "NC365 Sales Order API";
+        OrderLineAttributes: Dictionary of [Text, Text];
+        AttributeCode, AttributeValue : Text;
+    begin
+        OrderLineAttributes := SalesOrderAPI.GetStagingOrderLineAttributes(StagingOrderLine);
+        if OrderLineAttributes.Count() = 0 then
+            exit;
+
+        foreach AttributeCode in OrderLineAttributes.Keys() do
+            if OrderLineAttributes.Get(AttributeCode, AttributeValue) then
+                ProcessAttribute(SalesHeader, SalesLine, AttributeCode, AttributeValue);
+
+        SalesLine.Modify(true);
+    end;
+
+    local procedure ProcessAttribute(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; AttributeCode: Text; AttributeValue: Text)
+    var
+        DateValue: Date;
+        DecimalValue: Decimal;
+    begin
+        case AttributeCode of
+            'NOTE':
+                SalesLine.Validate(Note, CopyStr(AttributeValue, 1, MaxStrLen(SalesLine.Note)));
+
+            'PICKUP_TRUCK':
+                if AttributeValue = '1' then
+                    SalesLine.Validate("Pickup Truck", 'KOOIAAP');
+
+            'COMMENT':
+                CreateCommentSalesLine(SalesHeader, AttributeValue);
+
+            'PICKUP_TRUCK_FEE':
+                begin
+                    if not Evaluate(DecimalValue, AttributeValue) then
+                        exit;
+
+                    if DecimalValue = 0 then
+                        exit;
+
+                    SalesLine."Line Amount" += DecimalValue;
+                end;
+
+            'DELIVERY_DATE':
+                begin
+                    if AttributeValue.Contains(' ') then
+                        AttributeValue := CopyStr(AttributeValue.Split(' ').Get(1), 1, 10);
+
+                    if Evaluate(DateValue, AttributeValue) then
+                        SalesLine.Validate("Requested Delivery Date", DateValue);
+                end;
+        end;
+    end;
+
+    local procedure CreateCommentSalesLine(SalesHeader: Record "Sales Header"; Description: Text)
+    var
+        SalesLine: Record "Sales Line";
+        LineNo: Integer;
+    begin
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        if SalesLine.FindLast() then
+            LineNo := SalesLine."Line No." + 10000
+        else
+            LineNo := 10000;
+
+        SalesLine.Init();
+        SalesLine.Validate("Document Type", SalesHeader."Document Type");
+        SalesLine.Validate("Document No.", SalesHeader."No.");
+        SalesLine.Validate("Line No.", LineNo);
+        SalesLine.Validate(Type, SalesLine.Type::" ");
+        SalesLine.Validate(Description, CopyStr(Description, 1, MaxStrLen(SalesLine.Description)));
+        SalesLine.Insert(true);
+    end;
+    ```
 ---
 
 Remember to prioritize code readability, maintainability, and Business Central best practices in all suggestions.
