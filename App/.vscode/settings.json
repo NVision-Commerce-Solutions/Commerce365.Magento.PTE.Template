@@ -8,6 +8,6 @@
     "CRS.FileNamePattern": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
     "CRS.FileNamePatternExtensions": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
     "CRS.FileNamePatternPageCustomizations": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
-    "CRS.ObjectNamePrefix": "NC365C",
+    "CRS.ObjectNamePrefix": "NCPTE",
     "CRS.RemovePrefixFromFilename": false
 }
