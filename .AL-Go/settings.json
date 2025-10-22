@@ -1,7 +1,15 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v8.0/.Modules/settings.schema.json",
-  "country": "us",
   "appFolders": [],
   "testFolders": [],
-  "bcptTestFolders": []
+  "bcptTestFolders": [],
+  "appDependencyProbingPaths": [
+    {
+      "repo": "https://github.com/NVision-Commerce-Solutions/Commerce365.Magento",
+      "version": "latest",
+      "release_status": "release",
+      "authTokenSecret": "GHTOKENWORKFLOW"
+    }
+  ],
+  "repoVersion": "1.0"
 }
