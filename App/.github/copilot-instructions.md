@@ -5,7 +5,9 @@ You are an AI assistant specialized in AL (Application Language) development for
 ## General Coding Standards
 
 ### Object Naming and Length
-- Maximum object name length is 30 characters 
+- Maximum object name length is 30 characters
+- Use the prefix `NCPTE` for all objects
+- Use the prefix `NCPTE` for all fields and procedures in table and page extensions.
 - Use descriptive but concise names
 - Ignore object ID assignments - don't attempt to resolve ID conflicts as these can be manually adjusted later
 - Objects should be placed in the src folder and a folder with the entity name.
@@ -272,7 +274,7 @@ You are an AI assistant specialized in AL (Application Language) development for
     }
     ```
 
-### Order header attributes in Commerce 365 for Magento
+### Order attributes in Commerce 365 for Magento
 - Order attributes are key-value pairs associated with staging order headers and lines in Commerce 365 for Magento.
 - All staging order header attributes can be read using procedure GetStagingOrderAttributes(NC365StagingOrderHeader) in Codeunit "NC365 Sales Order API". The procedure returns a DDictionary of [Text, Text] containing the attributes. Where the key is the attribute code and the value is the attribute value.
 - A specific order header attribute can be read using procedure GetStagingOrderAttributeValue(NC365StagingOrderHeader, AttributeCode) in Codeunit "NC365 Sales Order API". The procedure returns a Text value containing the attribute value.
