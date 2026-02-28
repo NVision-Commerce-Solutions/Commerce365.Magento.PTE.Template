@@ -9,6 +9,13 @@
       "version": "latest",
       "release_status": "release",
       "authTokenSecret": "GHTOKENWORKFLOW"
+    },
+    {
+      "repo": "https://github.com/NVision-Commerce-Solutions/NVision.BC.Libraries",
+      "version": "latest",
+      "release_status": "release",
+      "projects": "*",
+      "authTokenSecret": "GHTOKENWORKFLOW"
     }
   ],
   "repoVersion": "1.0"
