@@ -49,14 +49,15 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          # Delete this workflow
           $workflowPath = ".github/workflows/initialize-appjson.yml"
+
           if (Test-Path $workflowPath) {
-              Remove-Item $workflowPath -Force
-              Write-Host "Workflow file removed: $workflowPath"
+              # Stage deletion using git rm
+              git rm -f $workflowPath
+              Write-Host "Workflow file staged for removal: $workflowPath"
           }
 
-          # Stage files
+          # Stage other changes
           git add App/app.json
           git add *.code-workspace
 
