@@ -49,19 +49,15 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          $file = Get-ChildItem -Recurse -Filter app.json | Select-Object -First 1
+          git status
 
-          if ($null -eq $file) {
-              Write-Error "app.json not found"
-              exit 1
-          }
-
-          git add $file.FullName
+          git add App/app.json
+          git add *.code-workspace
 
           if (git diff --cached --quiet) {
               Write-Host "No changes to commit"
           }
           else {
-              git commit -m "Initialize app.json"
+              git commit -m "Initialize client configuration"
               git push
           }
