@@ -59,7 +59,6 @@ jobs:
           # Stage files
           git add App/app.json
           git add *.code-workspace
-          git add $workflowPath
 
           # Commit only if changes exist
           if (git diff --cached --quiet) {
