@@ -35,7 +35,7 @@ jobs:
       - name: Update app.json
         shell: pwsh
         run: |
-          ./scripts/update-appjson.ps1 `
+          .github/workflows/scripts/update-appjson.ps1 `
             -ClientName "${{ steps.client.outputs.clientName }}"
 
       - name: Commit updated app.json
