@@ -7,6 +7,9 @@ on:
 
 jobs:
   initialize:
+    # Skip execution in the template repo
+    if: github.event.repository.is_template == false
+
     runs-on: windows-latest
 
     permissions:
@@ -22,23 +25,25 @@ jobs:
         run: |
           $repoName = "${{ github.event.repository.name }}"
 
-          Write-Host "Repository name: $repoName"
-
-          # OPTIONAL: Remove prefix if used
-          # Example: Commerce365.Magento.PTE.Contoso -> Contoso
-          $clientName = $repoName -replace "Commerce365.Magento.PTE.", ""
-
-          Write-Host "Client name: $clientName"
+          # Optional prefix removal
+          $clientName = $repoName -replace "^BC-App-", ""
 
           echo "clientName=$clientName" >> $env:GITHUB_OUTPUT
 
-      - name: Update app.json
+      - name: Run update script
         shell: pwsh
         run: |
-          .github/workflows/scripts/update-appjson.ps1 `
-            -ClientName "${{ steps.client.outputs.clientName }}"
+          $scriptPath = Join-Path $PWD ".github/workflows/scripts/update-appjson.ps1"
 
-      - name: Commit updated app.json
+          if (!(Test-Path $scriptPath)) {
+              Write-Error "Script not found: $scriptPath"
+              exit 1
+          }
+
+          & $scriptPath `
+              -ClientName "${{ steps.client.outputs.clientName }}"
+
+      - name: Commit changes
         shell: pwsh
         run: |
           git config user.name "github-actions"
