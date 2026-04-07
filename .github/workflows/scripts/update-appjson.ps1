@@ -42,7 +42,6 @@ else {
 # ---------------------------------------------------
 # Rename workspace file
 # ---------------------------------------------------
-
 $templateWorkspace =
     "Commerce365.Magento.PTE.Template.code-workspace"
 
@@ -50,7 +49,6 @@ $newWorkspace =
     "Commerce365.Magento.PTE.$ClientName.code-workspace"
 
 if (Test-Path $templateWorkspace) {
-
     if (!(Test-Path $newWorkspace)) {
 
         Write-Host "Renaming workspace file..."
@@ -61,17 +59,11 @@ if (Test-Path $templateWorkspace) {
 
         Write-Host "Workspace renamed to:"
         Write-Host $newWorkspace
-
     }
     else {
-
         Write-Host "Workspace file already renamed."
-
     }
-
 }
 else {
-
     Write-Host "Template workspace file not found — skipping rename."
-
 }

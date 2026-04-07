@@ -43,21 +43,29 @@ jobs:
           & $scriptPath `
               -ClientName "${{ steps.client.outputs.clientName }}"
 
-      - name: Commit changes
+      - name: Commit changes and remove workflow
         shell: pwsh
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          git status
+          # Delete this workflow
+          $workflowPath = ".github/workflows/initialize-appjson.yml"
+          if (Test-Path $workflowPath) {
+              Remove-Item $workflowPath -Force
+              Write-Host "Workflow file removed: $workflowPath"
+          }
 
+          # Stage files
           git add App/app.json
           git add *.code-workspace
+          git add $workflowPath
 
+          # Commit only if changes exist
           if (git diff --cached --quiet) {
               Write-Host "No changes to commit"
           }
           else {
-              git commit -m "Initialize client configuration"
+              git commit -m "Initialize client configuration and remove workflow"
               git push
           }
