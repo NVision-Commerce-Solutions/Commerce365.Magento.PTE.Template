@@ -3,10 +3,10 @@ param (
     [string]$ClientName
 )
 
-$appJsonPath = "app.json"
+$appJsonPath = "App/app.json"
 
 if (!(Test-Path $appJsonPath)) {
-    Write-Error "app.json not found."
+    Write-Error "app.json not found at $appJsonPath"
     exit 1
 }
 
@@ -28,7 +28,7 @@ Write-Host "Generated GUID: $newGuid"
 # Update id
 $appJson.id = $newGuid
 
-# Replace client name
+# Replace placeholder
 $appJson.name = $appJson.name.Replace("[Client Name]", $ClientName)
 
 # Save JSON

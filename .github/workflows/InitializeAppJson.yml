@@ -26,7 +26,7 @@ jobs:
           $repoName = "${{ github.event.repository.name }}"
 
           # Optional prefix removal
-          $clientName = $repoName -replace "^BC-App-", ""
+          $clientName = $repoName -replace "Commerce365.Magento.PTE.", ""
 
           echo "clientName=$clientName" >> $env:GITHUB_OUTPUT
 
@@ -49,9 +49,19 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          git add app.json
+          $file = Get-ChildItem -Recurse -Filter app.json | Select-Object -First 1
 
-          git commit -m "Initialize app.json" `
-            || Write-Host "No changes to commit"
+          if ($null -eq $file) {
+              Write-Error "app.json not found"
+              exit 1
+          }
 
-          git push
+          git add $file.FullName
+
+          if (git diff --cached --quiet) {
+              Write-Host "No changes to commit"
+          }
+          else {
+              git commit -m "Initialize app.json"
+              git push
+          }
