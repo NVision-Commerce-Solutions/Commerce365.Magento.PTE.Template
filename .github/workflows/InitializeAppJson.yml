@@ -43,7 +43,7 @@ jobs:
       - name: Run update script
         shell: pwsh
         run: |
-          $scriptPath = Join-Path $PWD "scripts/update-appjson.ps1"
+          $scriptPath = Join-Path $PWD ".github/workflows/scripts/update-appjson.ps1"
 
           if (!(Test-Path $scriptPath)) {
               Write-Error "Script not found: $scriptPath"
