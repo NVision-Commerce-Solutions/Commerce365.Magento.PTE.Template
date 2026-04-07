@@ -7,11 +7,8 @@ on:
 
 jobs:
   initialize:
-    # Skip execution in the template repo
     if: github.event.repository.is_template == false
-
     runs-on: windows-latest
-
     permissions:
       contents: write
 
@@ -19,53 +16,56 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Skip workflow if marker exists
+      - name: Skip if already initialized
+        id: check
+        shell: pwsh
+        run: |
+          if (Test-Path ".repo-initialized") {
+              Write-Host "Initialization already done — skipping workflow."
+              echo "skip=true" >> $env:GITHUB_OUTPUT
+          } else {
+              echo "skip=false" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Stop if initialized
+        if: steps.check.outputs.skip == 'true'
+        run: exit 0
+
       - name: Determine Client Name
         id: client
         shell: pwsh
         run: |
           $repoName = "${{ github.event.repository.name }}"
-
-          # Optional prefix removal
-          $clientName = $repoName -replace "Commerce365.Magento.PTE.", ""
-
+          $clientName = $repoName -replace "^BC-App-", ""
           echo "clientName=$clientName" >> $env:GITHUB_OUTPUT
 
       - name: Run update script
         shell: pwsh
         run: |
-          $scriptPath = Join-Path $PWD ".github/workflows/scripts/update-appjson.ps1"
+          $scriptPath = Join-Path $PWD "scripts/update-appjson.ps1"
 
           if (!(Test-Path $scriptPath)) {
               Write-Error "Script not found: $scriptPath"
               exit 1
           }
 
-          & $scriptPath `
-              -ClientName "${{ steps.client.outputs.clientName }}"
+          & $scriptPath -ClientName "${{ steps.client.outputs.clientName }}"
 
-      - name: Commit changes and remove workflow
+      - name: Commit changes
         shell: pwsh
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          $workflowPath = ".github/workflows/initialize-appjson.yml"
-
-          if (Test-Path $workflowPath) {
-              # Stage deletion using git rm
-              git rm -f $workflowPath
-              Write-Host "Workflow file staged for removal: $workflowPath"
-          }
-
-          # Stage other changes
           git add App/app.json
           git add *.code-workspace
+          git add .repo-initialized
 
-          # Commit only if changes exist
           if (git diff --cached --quiet) {
               Write-Host "No changes to commit"
           }
           else {
-              git commit -m "Initialize client configuration and remove workflow"
+              git commit -m "Initialize client configuration"
               git push
           }
